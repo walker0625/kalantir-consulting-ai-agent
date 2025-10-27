@@ -11,9 +11,6 @@ from langchain_community.vectorstores import Qdrant
 from langchain_openai import ChatOpenAI
 from langchain_openai.embeddings import OpenAIEmbeddings
 
-# Qdrant 관련
-from qdrant_client import QdrantClient
-
 load_dotenv()
 
 class DbAnalyzeAgent:
@@ -49,8 +46,6 @@ class DbAnalyzeAgent:
         # 컴포넌트 초기화
         self.db = None
         self.agent = None
-        self.qdrant_client = None
-        self.embedding = None
         
     def setup_database(self):
         """PostgreSQL DB 연결 설정"""
@@ -77,15 +72,6 @@ class DbAnalyzeAgent:
             handle_parsing_errors=True,
         )
         print("SQL Agent 초기화 완료")
-        
-    def setup_qdrant(self):
-        """Qdrant 클라이언트 및 임베딩 초기화"""
-        self.qdrant_client = QdrantClient(url=self.qdrant_url)
-        self.embedding = OpenAIEmbeddings(model=self.embedding_model)
-        
-        # 서버 상태 확인
-        collections = self.qdrant_client.get_collections()
-        print(f"Qdrant 연결 완료 - 컬렉션: {collections}")
         
     def analyze_and_generate_proposals(self) -> str:
         """DB 분석 후 AI 도입 제안 생성"""
@@ -154,10 +140,12 @@ SQL 쿼리를 통해 인사이트를 도출할 수 있는 DBA이자 사업분석
         
         print(f"{len(chunks)}개 청크로 분할 완료")
         
+        embedding = OpenAIEmbeddings(model=self.embedding_model)
+        
         # Qdrant에 저장
         db = Qdrant.from_documents(
             documents=docs,
-            embedding=self.embedding,
+            embedding=embedding,
             collection_name=self.collection_name,
             url=self.qdrant_url
         )
@@ -173,7 +161,6 @@ SQL 쿼리를 통해 인사이트를 도출할 수 있는 DBA이자 사업분석
         # 1. 초기화
         self.setup_database()
         self.setup_agent()
-        self.setup_qdrant()
         
         # 2. 분석 실행
         print("\nDB 분석 중...")
