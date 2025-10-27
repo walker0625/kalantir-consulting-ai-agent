@@ -14,16 +14,16 @@ class PdfVectorizer:
         folder_path: str,
         chunk_size: int = 1000,
         chunk_overlap: int = 100,
+        embedding_model: str = "text-embedding-3-small",
         qdrant_url: str = "http://localhost:6333",
-        collection_name: str = "samsung_external_pdf",
-        embedding_model: str = "text-embedding-3-small"
+        collection_name: str = "samsung_external_pdf"
     ):
         self.folder_path = folder_path
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        self.embedding = OpenAIEmbeddings(model=embedding_model)
         self.qdrant_url = qdrant_url
         self.collection_name = collection_name
-        self.embedding = OpenAIEmbeddings(model=embedding_model)
 
     def find_pdf_files(self):
         """폴더 내의 모든 pdf 파일 경로 수집"""
