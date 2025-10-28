@@ -5,6 +5,8 @@ from langchain_community.document_loaders import PDFPlumberLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Qdrant
 
+from util.path import PDF_DIR
+
 load_dotenv()
 
 class PdfVectorizer:
@@ -103,7 +105,7 @@ class PdfVectorizer:
 if __name__ == "__main__":
 
     pdf_vectorizer = PdfVectorizer(
-        folder_path="../../raw_data/pdf",
+        folder_path=PDF_DIR,
         chunk_size=1000,
         chunk_overlap=100,
         qdrant_url="http://localhost:6333",
