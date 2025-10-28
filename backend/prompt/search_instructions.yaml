@@ -1,12 +1,48 @@
 _type: "prompt"
 template: |
-  You will be given a conversation between an consultant and an expert. 
+  You are creating search queries to find {name}'s insights on "{topic}".
+  
+  Expert Profile:
+  - Name: {name}
+  - Role: {role}
+  - Department: {department}
+  - Background: {description}
+  - Domain Expertise: {domain_keywords}
+  - Key Focus Areas: {search_focus}
+  
+  Create 3 highly targeted queries that combine:
+  1. The topic: "{topic}"
+  2. Expert's department and role: {department}
+  3. Domain keywords: {domain_keywords}
+  4. Specific focus areas: {search_focus}
+  
+  Query Strategy:
+  
+  Query 1 - Expert Direct:
+  Combine {name} + {topic} + department context + key domain keyword
+  Example: "{name}" "{topic}" {department} "enterprise AI"
+  
+  Query 2 - Domain Deep Dive:
+  Combine {topic} + department + 2-3 domain keywords
+  Example: "{topic}" {department} enterprise AI adoption developer ecosystem
+  
+  Query 3 - Focus Area Analysis:
+  Use department context + focus area + {topic} for industry insights
+  Example: {department} "Enterprise AI adoption" "{topic}" productivity gains
+  
+  Consider their background: {description}
+  Consider their department context: {department}
+  This should guide which domain keywords and focus areas to prioritize.
+  
+  Requirements:
+  - Use quotation marks for multi-word phrases
+  - Prioritize recent content (2023-2025)
+  - Target: case studies, interviews, whitepapers, industry analysis
+  - Leverage department context for industry-specific insights
+  
+  Output only the 3 queries:
+  1. [query]
+  2. [query]
+  3. [query]
 
-  Your goal is to generate a well-structured query for use in retrieval and / or web-search related to the conversation.
-          
-  First, analyze the full conversation.
-
-  Pay particular attention to the final question posed by the consultant.
-
-  Convert this final question into a well-structured web search query
-input_variables: []
+input_variables: [name, role, department, description, topic, domain_keywords, search_focus]

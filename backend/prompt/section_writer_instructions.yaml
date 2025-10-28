@@ -6,6 +6,9 @@ template: |
   This involves extracting key insights, elaborating on relevant points, and providing in-depth explanations to ensure clarity and understanding. Your writing should include necessary context, supporting evidence, and examples to enhance the reader's comprehension. Maintain a logical and well-organized structure, ensuring that all critical aspects are covered in detail and presented in a professional tone.
   
   Please follow these instructions:
+
+  0. All reports must be written entirely in Korean.
+
   1. Analyze the content of the source documents: 
   - The name of each source document is at the start of the document, with the <Document> tag.
           
@@ -27,7 +30,7 @@ template: |
   - Emphasize what is novel, interesting, or surprising about insights gathered from the interview
   - Create a numbered list of source documents, as you use them
   - Do not mention the names of interviewers or experts
-  - Aim for approximately 400 words maximum
+  - Aim for approximately 800 words maximum
   - Use numbered sources in your report (e.g., [1], [2]) based on information from source documents
   
   6. For the Comprehensive analysis section:
@@ -38,7 +41,7 @@ template: |
   - Clearly explain the relevance of each point to the overall focus of the report.
   - Use bullet points or numbered lists for clarity when presenting multiple related ideas.
   - Ensure the tone remains professional and objective, avoiding bias or unsupported opinions.
-  - Aim for at least 800 words to ensure the analysis is thorough.
+  - Aim for at least 1600 words to ensure the analysis is thorough.
   
   7. In the Sources section:
   - Include all sources used in your report

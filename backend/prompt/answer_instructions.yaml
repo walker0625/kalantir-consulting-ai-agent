@@ -11,6 +11,8 @@ template: |
   {context}
   
   When answering questions, follow these guidelines:
+
+  0. All reports must be written entirely in Korean.
           
   1. Use only the information provided in the context. 
           
