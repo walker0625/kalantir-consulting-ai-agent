@@ -7,6 +7,9 @@ Discussion Agent - LangGraph 기반 컨설턴트 인터뷰 및 보고서 생성 
 import operator
 from typing import Annotated, List, Callable
 
+from util.consultants import Consultant, CONSULTANT_PROFILES
+from util.path import PROMPT_DIR
+
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
@@ -18,6 +21,7 @@ from langchain_tavily import TavilySearch
 from langchain_community.vectorstores import Qdrant
 from langchain_community.utilities import SQLDatabase
 
+from langgraph.constants import Send
 from langgraph.graph import START, END, StateGraph, MessagesState
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.checkpoint.memory import MemorySaver
@@ -25,53 +29,18 @@ from langgraph.checkpoint.memory import MemorySaver
 from qdrant_client import QdrantClient
 from sqlalchemy import text
 
-
-# ================================
-# 1. 환경 설정
-# ================================
-
 load_dotenv()
 
 # LLM 초기화
 llm = ChatOpenAI(model='gpt-4o', temperature=0)
 
-
-# ================================
-# 2. 데이터 모델 정의
-# ================================
-
-class Consultant(BaseModel):
-    """컨설턴트 페르소나 모델"""
-    department: str
-    name: str
-    role: str
-    description: str
-    
-    @property
-    def persona(self) -> str:
-        return f"Department: {self.department}\nRole: {self.role}\nName: {self.name}\nDescription: {self.description}\n"
-
-
 class SearchQuery(BaseModel):
     """검색 쿼리 모델"""
     search_query: str = Field(None, description="Search query for retrieval.")
 
-
-class Perspectives(BaseModel):
-    """섹션별 관점 모델"""
-    sections: List[str] = Field(
-        description="List of comprehensive perspectives on the topic.",
-    )
-
-
-# ================================
-# 3. 상태 정의
-# ================================
-
 def debug_reducer(old, new):
     """State update 동기화 error 해결용 reducer"""
     return new
-
 
 class InterviewState(MessagesState):
     """인터뷰 상태"""
@@ -81,7 +50,6 @@ class InterviewState(MessagesState):
     interview: str
     sections: list
     topic: Annotated[str, debug_reducer]
-
 
 class ResearchGraphState(MessagesState):
     """전체 리서치 그래프 상태"""
@@ -95,91 +63,50 @@ class ResearchGraphState(MessagesState):
     conclusion: str
     final_report: str
 
-
 # ================================
-# 4. 컨설턴트 설정
-# ================================
-
-# 사전 정의된 컨설턴트들
-chief_consultant = Consultant(
-    department="AI",
-    name="Peter Thiel",
-    role="AI 수석 컨설턴트",
-    description="""
-        페이팔 공동창업자이자 실리콘밸리의 사상적 전략가로, '제로 투 원' 철학을 주창한 혁신가입니다.  
-        단순한 경쟁보다 독창적 시장 창출을 중시하며, 비전을 구체적 실행으로 전환하는 능력이 탁월합니다.  
-        기존 질서를 의심하고 미래를 거시적으로 설계하는 냉철한 사색가이자 투자자입니다.
-    """,
-)
-
-financial_consultant = Consultant(
-    department="AI",
-    name="Warren Buffett",
-    role="금융 전문가",
-    description="""
-        투자 철학의 대가로, 장기적 관점에서 기업의 본질 가치에 집중하는 보수적 투자자입니다.  
-        합리적 사고와 인내를 바탕으로 위기 속에서도 냉정하게 판단하며, 복리의 힘을 신뢰합니다.  
-        단기적 유행보다 경영진의 신뢰도와 비즈니스의 지속가능성을 중시하는 실용적 리더입니다.
-    """,
-)
-
-hardware_consultant = Consultant(
-    department="AI",
-    name="Jensen Huang",
-    role="하드웨어 전문가",
-    description="""
-        엔비디아의 공동 창립자이자 기술 비전을 현실로 이끄는 혁신적 리더입니다.  
-        AI와 GPU 컴퓨팅 시대를 선도하며, 복잡한 기술을 시장 중심의 전략으로 전환하는 능력이 탁월합니다.  
-        열정적이고 카리스마 있는 리더십으로 팀의 몰입과 창의성을 극대화합니다.
-    """,
-)
-
-software_consultant = Consultant(
-    department="AI",
-    name="Mark Zuckerberg",
-    role="소프트웨어 전문가",
-    description="""
-        소셜 네트워크 혁신을 주도한 기업가로, 데이터 중심 사고와 실험적 접근을 중시합니다.  
-        빠른 의사결정과 반복적 개선을 통해 대규모 플랫폼을 성장시킨 실행 중심형 리더입니다.  
-        최근에는 메타버스와 AI를 결합한 미래 연결 생태계 구축에 집중하고 있습니다.
-    """,
-)
-
-# 기본 컨설턴트 리스트
-consultants = [financial_consultant, hardware_consultant, software_consultant]
-
-
-# ================================
-# 5. 인터뷰 노드 함수들
+# 인터뷰 노드 함수들
 # ================================
 def ask_question(state: InterviewState):
     """컨설턴트가 질문을 생성하는 노드"""
+    topic = state['topic']
     consultant = state['consultant']
     messages = state['messages']
     
-    question_instructions = load_prompt("../prompt/question_instructions.yaml", encoding="utf-8")
+    question_instructions = load_prompt(PROMPT_DIR / "question_instructions.yaml", encoding="utf-8")
     
-    system_message = question_instructions.format(goals=consultant.persona)
+    system_message = question_instructions.format(topic=topic, goals=consultant.persona)
     question = llm.invoke([SystemMessage(content=system_message)] + messages)
     
     return {'messages': [question]}
 
 def search_web(state: InterviewState):
+    
+    consultant= state['consultant']
+    topic=state['topic']
+    
     """웹 검색으로 문서를 찾는 노드"""
-    search_instructions = load_prompt("../prompt/search_instructions.yaml", encoding="utf-8").format()
+    search_instructions = load_prompt(PROMPT_DIR / "search_instructions.yaml", encoding="utf-8").format(
+        name=consultant.name, role=consultant.role, 
+        department=consultant.department, description=consultant.description, 
+        topic=topic, domain_keywords=consultant.domain_keywords, 
+        search_focus=consultant.search_focus)
     
     # 응답 형식 지정
     structured_llm = llm.with_structured_output(SearchQuery)
     # LLM으로 검색 쿼리 최적화
     search_query = structured_llm.invoke([SystemMessage(search_instructions)] + state['messages'])
     
-    tavily_search = TavilySearch(max_results=3)
+    tavily_search = TavilySearch(max_results=6)
+    
+    print('검색쿼리')
+    print(search_query.search_query)
     search_docs = tavily_search.invoke(search_query.search_query)
+    print('검색결과')
+    print(search_docs)
     
     return {"context": [search_docs]}
 
-
-def create_retriever(collection_name: str, k: int = 3):
+def create_retriever(collection_name: str, k: int = 20):
     """Qdrant에서 retriever 생성"""
     QDRANT_URL = 'http://localhost:6333'
     
@@ -197,7 +124,6 @@ def create_retriever(collection_name: str, k: int = 3):
         search_kwargs={"k": k}
     )
 
-
 def search_rag(state: InterviewState):
     """RAG를 통해 내부 문서를 검색하는 노드"""
     COLLECTIONS = ['samsung_internal_db', 'samsung_external_web', 'samsung_external_pdf']
@@ -207,11 +133,11 @@ def search_rag(state: InterviewState):
     
     for name, retriever in retrievers.items():
         results = retriever.invoke(query)
-        print(f"\n📂 {name} results:")
+        print(f"\n{name} results:")
         for doc in results[:2]:
             print("-", doc.metadata.get("source"), ":", doc.page_content[:100])
             
-        return {"context": [results]}
+    return {"context": [results]}
 
 def answer_question(state: InterviewState):
     """전문가가 답변을 생성하는 노드"""
@@ -219,7 +145,7 @@ def answer_question(state: InterviewState):
     messages = state['messages']
     context = state.get('context', [])
     
-    answer_instructions = load_prompt("../prompt/answer_instructions.yaml", encoding="utf-8")
+    answer_instructions = load_prompt(PROMPT_DIR / "answer_instructions.yaml", encoding="utf-8")
     
     system_message = answer_instructions.format(
         goals=consultant.persona,
@@ -228,7 +154,6 @@ def answer_question(state: InterviewState):
     answer = llm.invoke([SystemMessage(content=system_message)] + messages)
     
     return {'messages': [answer]}
-
 
 def save_interview(state: InterviewState):
     """인터뷰 내용을 저장하는 노드"""
@@ -244,9 +169,14 @@ def write_section(state: InterviewState):
     consultant = state['consultant']
     
     # TODO interview 내용 확인하여 활용 결정
+    print('***********컨텍스트시작************')
+    print(context)
+    print('***********컨텍스트 끝************')
+    print('**********인터뷰 시작*************')
     print(interview)
+    print('**********인터뷰 끝*************')
     
-    section_writer_instructions = load_prompt("../prompt/section_writer_instructions.yaml", encoding="utf-8")
+    section_writer_instructions = load_prompt(PROMPT_DIR / "section_writer_instructions.yaml", encoding="utf-8")
     
     system_message = section_writer_instructions.format(focus=consultant.persona)
     section = llm.invoke([
@@ -256,11 +186,10 @@ def write_section(state: InterviewState):
     
     return {'sections': [section.content]}
 
-
 def route_messages(state: InterviewState):
     """대화 종료 여부를 판단하는 라우팅 함수"""
     messages = state['messages']
-    max_num_turns = state.get('max_num_turns', 2)
+    max_num_turns = state.get('max_num_turns', 3)
     num_responses = len([m for m in messages if isinstance(m, AIMessage)])
     
     if num_responses >= max_num_turns:
@@ -273,11 +202,9 @@ def route_messages(state: InterviewState):
     
     return 'ask_question'
 
-
 # ================================
-# 6. 인터뷰 그래프 구성
+# 인터뷰 그래프 구성
 # ================================
-
 def build_interview_graph():
     """인터뷰 그래프를 구성하고 반환"""
     interview_builder = StateGraph(InterviewState)
@@ -309,12 +236,18 @@ def build_interview_graph():
 
 
 # ================================
-# 7. 메인 리서치 그래프 노드 함수들
+# 메인 리서치 그래프 노드 함수들
 # ================================
 
 def setting_consultants(state: ResearchGraphState):
-    """컨설턴트들을 설정하는 노드"""
+    # 최대 컨설턴트 수 가져오기
+    max_consultants = state.get("max_consultants", 3)
     
+    # 프로필을 Consultant 객체로 변환
+    consultants = [
+        Consultant(**profile) 
+        for profile in CONSULTANT_PROFILES[:max_consultants]
+    ]
     return {'consultants': consultants}
 
 # TODO 병렬실행을 위해 추가한 더미 함수 - 불필요시 제거
@@ -333,7 +266,7 @@ def route_to_interviews(state: ResearchGraphState):
             "messages": [
                 HumanMessage(content="Welcome! We'll begin the interview now.")
             ],
-            "max_num_turns": 2,
+            "max_num_turns": 3,
             "context": [],
             "topic": state['topic'],
             "sections": state['sections']
@@ -348,7 +281,7 @@ def write_report(state: ResearchGraphState):
     
     formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
     
-    report_writer_instructions = load_prompt("../prompt/report_writer_instructions.yaml", encoding="utf-8")
+    report_writer_instructions = load_prompt(PROMPT_DIR / "report_writer_instructions.yaml", encoding="utf-8")
     
     system_message = report_writer_instructions.format(
         topic=topic,
@@ -365,7 +298,7 @@ def write_introduction(state: ResearchGraphState):
     
     formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
     
-    intro_conclusion_instructions = load_prompt("../prompt/intro_conclusion_instructions.yaml", encoding="utf-8")
+    intro_conclusion_instructions = load_prompt(PROMPT_DIR / "intro_conclusion_instructions.yaml", encoding="utf-8")
     
     instructions = intro_conclusion_instructions.format(
         topic=topic,
@@ -378,7 +311,6 @@ def write_introduction(state: ResearchGraphState):
     
     return {'introduction': intro.content}
 
-
 def write_conclusion(state: ResearchGraphState):
     """결론을 작성하는 노드"""
     topic = state['topic']
@@ -386,7 +318,7 @@ def write_conclusion(state: ResearchGraphState):
     
     formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
     
-    intro_conclusion_instructions = load_prompt("../prompt/intro_conclusion_instructions.yaml", encoding="utf-8")
+    intro_conclusion_instructions = load_prompt(PROMPT_DIR / "intro_conclusion_instructions.yaml", encoding="utf-8")
     
     instructions = intro_conclusion_instructions.format(
         topic=topic,
@@ -398,7 +330,6 @@ def write_conclusion(state: ResearchGraphState):
     ])
     
     return {'conclusion': conclusion.content}
-
 
 def finalize_report(state: ResearchGraphState):
     """최종 보고서를 완성하는 노드"""
@@ -413,13 +344,8 @@ def finalize_report(state: ResearchGraphState):
 
 
 # ================================
-# 8. 메인 리서치 그래프 구성
+# 메인 리서치 그래프 구성
 # ================================
-
-# Send import 추가
-from langgraph.constants import Send
-
-
 def build_research_graph():
     """메인 리서치 그래프를 구성하고 반환"""
     # 인터뷰 그래프 먼저 빌드
@@ -547,7 +473,7 @@ def save_report_to_db(report: str, report_type: str = "daily"):
 
 
 # ================================
-# 10. 메인 실행 함수
+# 메인 실행 함수
 # ================================
 
 def main():
@@ -572,7 +498,7 @@ def main():
     
     # 그래프 실행
     print("=" * 80)
-    print("🚀 Starting Research Process...")
+    print("Starting Research Process...")
     print("=" * 80)
     
     invoke_graph(graph, initial_inputs, config)
@@ -583,13 +509,13 @@ def main():
     
     # 보고서 출력
     print("\n" + "=" * 80)
-    print("📄 FINAL REPORT")
+    print("FINAL REPORT")
     print("=" * 80)
     print(final_report)
     
     # 보고서 저장 (옵션)
     report_id = save_report_to_db(final_report, "daily")
-    print(f"\n✅ Report saved to database with ID: {report_id}")
+    print(f"\nReport saved to database with ID: {report_id}")
     
     return final_report
 
