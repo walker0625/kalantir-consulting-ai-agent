@@ -7,7 +7,7 @@ Discussion Agent - LangGraph 기반 컨설턴트 인터뷰 및 보고서 생성 
 import operator
 from typing import Annotated, List, Callable
 
-from util.consultants import Consultant, CONSULTANT_PROFILES
+from util.persona import Consultant, CONSULTANT_PROFILES
 from util.path import PROMPT_DIR
 
 from dotenv import load_dotenv
@@ -32,7 +32,7 @@ from sqlalchemy import text
 load_dotenv()
 
 # LLM 초기화
-llm = ChatOpenAI(model='gpt-4o', temperature=0)
+llm = ChatOpenAI(model='gpt-4o-mini', temperature=0.7)
 
 class SearchQuery(BaseModel):
     """검색 쿼리 모델"""
@@ -106,7 +106,7 @@ def search_web(state: InterviewState):
     
     return {"context": [search_docs]}
 
-def create_retriever(collection_name: str, k: int = 20):
+def create_retriever(collection_name: str, k: int = 3):
     """Qdrant에서 retriever 생성"""
     QDRANT_URL = 'http://localhost:6333'
     
@@ -131,13 +131,15 @@ def search_rag(state: InterviewState):
     
     query = state['topic']
     
+    all_results = []
+    
     for name, retriever in retrievers.items():
         results = retriever.invoke(query)
-        print(f"\n{name} results:")
-        for doc in results[:2]:
-            print("-", doc.metadata.get("source"), ":", doc.page_content[:100])
-            
-    return {"context": [results]}
+        all_results.extend(results)
+        print(f"{name} - {len(results)}개 문서 수집")
+    
+    print(f"\n총 {len(all_results)}개 문서 반환")
+    return {"context": [all_results]}
 
 def answer_question(state: InterviewState):
     """전문가가 답변을 생성하는 노드"""
@@ -261,16 +263,18 @@ def route_to_interviews(state: ResearchGraphState):
     max_consultants = state.get('max_consultants', 3)
     
     return [
-        Send("conduct_interview", {
-            "consultant": consultant,
-            "messages": [
-                HumanMessage(content="Welcome! We'll begin the interview now.")
-            ],
-            "max_num_turns": 3,
-            "context": [],
-            "topic": state['topic'],
-            "sections": state['sections']
-        })
+        Send("conduct_interview", 
+                {
+                "consultant": consultant,
+                "messages": [
+                    HumanMessage(content="Welcome! We'll begin the interview now.")
+                ],
+                "max_num_turns": 3,
+                "context": [],
+                "topic": state['topic'],
+                "sections": state['sections']
+            }
+        )
         for consultant in state['consultants'][:max_consultants]
     ]
 

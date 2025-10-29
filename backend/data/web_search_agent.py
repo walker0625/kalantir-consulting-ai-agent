@@ -28,7 +28,7 @@ class WebSearchAgent:
         self.qdrant_url = qdrant_url
         self.collection_name = collection_name
 
-        self.llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0)
+        self.llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
         self.tavily_search = TavilySearch(max_result=3)
         self.embedding = OpenAIEmbeddings(model="text-embedding-3-small")
         

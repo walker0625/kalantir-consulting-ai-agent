@@ -28,7 +28,7 @@ class DbAnalyzeAgent:
         db_schema: str = "ai",
         collection_name: str = "samsung_internal_db",
         qdrant_url: str = "http://localhost:6333",
-        llm_model: str = "gpt-4o",
+        llm_model: str = "gpt-4o-mini",
         embedding_model: str = "text-embedding-3-small"
     ):
         """
@@ -167,7 +167,7 @@ def main():
         db_schema="ai",
         collection_name="samsung_internal_db",
         qdrant_url=QDRANT_URL,
-        llm_model="gpt-4o",
+        llm_model="gpt-4o-mini",
         embedding_model="text-embedding-3-small"
     )
     

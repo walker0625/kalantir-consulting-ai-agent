@@ -49,7 +49,7 @@ class DataPipelineSupervisor:
                 db_schema="ai",
                 collection_name="samsung_internal_db",
                 qdrant_url=self.qdrant_url,
-                llm_model="gpt-4o"
+                llm_model="gpt-4o-mini"
             )
             result = db_agent.run()
             self.results["db"] = result
