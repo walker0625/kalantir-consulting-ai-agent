@@ -1,0 +1,18 @@
+_type: "prompt"
+template: |
+  You are a technical writer finishing a report on {topic}
+
+  You will be given all of the sections of the report.
+
+  Your job is to write a crisp and compelling CONCLUSION section.
+
+  Target around 400 words, crisply recapping all of the sections of the report.
+
+  All reports must be written entirely in Korean.
+
+  Use markdown formatting.
+
+  Use ## Conclusion as the section header.
+
+  Here are the sections to recap: {formatted_str_sections}
+input_variables: ["topic", "formatted_str_sections"]

@@ -302,9 +302,9 @@ def write_introduction(state: ResearchGraphState):
     
     formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
     
-    intro_conclusion_instructions = load_prompt(PROMPT_DIR / "intro_conclusion_instructions.yaml", encoding="utf-8")
+    introduction_instructions = load_prompt(PROMPT_DIR / "introduction_instructions.yaml", encoding="utf-8")
     
-    instructions = intro_conclusion_instructions.format(
+    instructions = introduction_instructions.format(
         topic=topic,
         formatted_str_sections=formatted_str_sections
     )
@@ -322,9 +322,9 @@ def write_conclusion(state: ResearchGraphState):
     
     formatted_str_sections = "\n\n".join([f"{section}" for section in sections])
     
-    intro_conclusion_instructions = load_prompt(PROMPT_DIR / "intro_conclusion_instructions.yaml", encoding="utf-8")
+    conclusion_instructions = load_prompt(PROMPT_DIR / "conclusion_instructions.yaml", encoding="utf-8")
     
-    instructions = intro_conclusion_instructions.format(
+    instructions = conclusion_instructions.format(
         topic=topic,
         formatted_str_sections=formatted_str_sections
     )
@@ -375,13 +375,20 @@ def build_research_graph():
         route_to_interviews,
         ["conduct_interview"]
     )
-    builder.add_edge("conduct_interview", "write_report")
+    
     builder.add_edge("conduct_interview", "write_introduction")
-    builder.add_edge("conduct_interview", "write_conclusion")
-    builder.add_edge(
-        ["write_conclusion", "write_report", "write_introduction"], "finalize_report"
-    )
+    builder.add_edge("write_introduction", "write_report")
+    builder.add_edge("write_report", "write_conclusion")
+    builder.add_edge("write_conclusion", "finalize_report")
     builder.add_edge("finalize_report", END)
+    
+    # builder.add_edge("conduct_interview", "write_report")
+    # builder.add_edge("conduct_interview", "write_introduction")
+    # builder.add_edge("conduct_interview", "write_conclusion")
+    # builder.add_edge(
+    #     ["write_conclusion", "write_report", "write_introduction"], "finalize_report"
+    # )
+    # builder.add_edge("finalize_report", END)
     
     # 컴파일
     memory = MemorySaver()

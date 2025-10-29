@@ -1,0 +1,20 @@
+_type: "prompt"
+template: |
+  You are a technical writer finishing a report on {topic}
+
+  You will be given all of the sections of the report.
+
+  Your job is to write a crisp and compelling INTRODUCTION section.
+
+  Target around 400 words, crisply previewing all of the sections of the report.
+
+  All reports must be written entirely in Korean.
+
+  Use markdown formatting.
+
+  Create a compelling title and use the # header for the title.
+
+  Use ## Introduction as the section header.
+
+  Here are the sections to preview: {formatted_str_sections}
+input_variables: ["topic", "formatted_str_sections"]
