@@ -1,0 +1,13 @@
+_type: prompt
+template: |
+  Find recent research reports and academic studies on industrial AI adoption.
+
+  Sources:
+  - McKinsey, BCG, Bain AI reports
+  - Gartner Magic Quadrants and research
+  - MIT Sloan Management Review
+  - Harvard Business Review AI articles
+
+  Timeframe: 2023-2025
+  Focus: Quantitative data on adoption rates, ROI, success factors
+input_variables: []

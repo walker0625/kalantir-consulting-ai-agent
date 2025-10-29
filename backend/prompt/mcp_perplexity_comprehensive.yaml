@@ -1,0 +1,32 @@
+_type: prompt
+template: |
+  Provide a comprehensive strategic analysis of enterprise AI adoption.
+
+  Synthesize insights on:
+
+  1. CURRENT STATE (2024-2025)
+    - AI adoption maturity by industry
+    - Technology landscape (GenAI, MLOps, Edge AI)
+    - Market leaders and disruptors
+
+  2. SUCCESS FACTORS
+    - Organizational readiness
+    - Technical infrastructure requirements
+    - Change management approaches
+
+  3. FINANCIAL IMPACT
+    - Typical investment levels
+    - Expected ROI and payback periods
+    - Long-term value creation
+
+  4. RISK ANALYSIS
+    - Common failure points
+    - Ethical and regulatory risks
+
+  5. FUTURE OUTLOOK (2025-2027)
+    - Technology evolution
+    - Market opportunities
+
+  Cite specific studies and expert opinions.
+  Use data to support all claims.
+input_variables: []

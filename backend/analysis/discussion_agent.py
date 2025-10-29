@@ -126,7 +126,7 @@ def create_retriever(collection_name: str, k: int = 3):
 
 def search_rag(state: InterviewState):
     """RAG를 통해 내부 문서를 검색하는 노드"""
-    COLLECTIONS = ['samsung_internal_db', 'samsung_external_web', 'samsung_external_pdf']
+    COLLECTIONS = ['industry_ai_cases', 'samsung_internal_db', 'samsung_external_pdf']
     retrievers = {name: create_retriever(name) for name in COLLECTIONS}
     
     query = state['topic']
@@ -381,16 +381,7 @@ def build_research_graph():
     builder.add_edge("write_report", "write_conclusion")
     builder.add_edge("write_conclusion", "finalize_report")
     builder.add_edge("finalize_report", END)
-    
-    # builder.add_edge("conduct_interview", "write_report")
-    # builder.add_edge("conduct_interview", "write_introduction")
-    # builder.add_edge("conduct_interview", "write_conclusion")
-    # builder.add_edge(
-    #     ["write_conclusion", "write_report", "write_introduction"], "finalize_report"
-    # )
-    # builder.add_edge("finalize_report", END)
-    
-    # 컴파일
+
     memory = MemorySaver()
     return builder.compile(checkpointer=memory)
 

@@ -1,0 +1,19 @@
+_type: prompt
+template: |
+  Search for technical case studies and implementation guides for AI in enterprise.
+
+  Focus on:
+  - Official documentation from AI vendors (AWS, Google Cloud, Microsoft Azure)
+  - Engineering blogs from tech companies
+  - Technical conference papers and presentations
+  - Open-source project case studies
+
+  Required details:
+  - Architecture diagrams and technical stack
+  - Specific models/frameworks used
+  - Performance benchmarks
+  - Code examples or GitHub references
+
+  Industries: Manufacturing, Logistics, Quality Assurance
+  Language: English preferred (better coverage)
+input_variables: []

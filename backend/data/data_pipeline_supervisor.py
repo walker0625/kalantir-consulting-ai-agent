@@ -1,12 +1,17 @@
+import os
+from dotenv import load_dotenv
+
 import logging
 from datetime import datetime
 from typing import Literal
 
 from backend.data.db_analyze_agent import DbAnalyzeAgent
 from backend.data.pdf_vectorizer import PdfVectorizer
-from backend.data.web_search_agent import WebSearchAgent
+from backend.data.web_search_agent import WebSearchMCPAgent  # 변경
 
 from util.path import PDF_DIR, LOG_DIR
+
+load_dotenv()
 
 # ----------------------------
 # 기본 로깅 설정
@@ -24,7 +29,6 @@ class DataPipelineSupervisor:
     """
     PDF / WEB / DB Agent를 중앙에서 제어하는 Supervisor
     - 순차 실행, 예외 처리, 로깅 관리
-    - LLM은 각 Agent 내부에서만 사용 (Supervisor는 orchestration 전용)
     """
 
     def __init__(
@@ -38,9 +42,6 @@ class DataPipelineSupervisor:
         self.pdf_folder = pdf_folder
         self.results = {}
 
-    # ----------------------------------------------------------------
-    # 개별 실행 래퍼
-    # ----------------------------------------------------------------
     def run_db_agent(self):
         logging.info("[DB Agent] 내부 데이터 분석 시작")
         try:
@@ -71,30 +72,37 @@ class DataPipelineSupervisor:
         except Exception as e:
             logging.error(f"[PDF Agent] 오류 발생: {e}")
 
-    def run_web_agent(self, query: str):
-        logging.info("[Web Agent] 웹 검색 및 임베딩 시작")
+    def run_web_agent(self):
+        """웹 검색 Agent (MCP 기반)"""
+        logging.info("[Web MCP Agent] 산업 AI 도입 사례 검색 시작")
         try:
-            web_agent = WebSearchAgent(
-                query=query,
+            web_agent = WebSearchMCPAgent(
                 qdrant_url=self.qdrant_url,
-                collection_name="samsung_external_web"
+                collection_name="industry_ai_cases"  # 고정
             )
-            web_agent.run()
-            self.results["web"] = f"'{query}' 검색 완료"
-            logging.info("[Web Agent] 완료")
+            result = web_agent.run()
+            
+            if result["success"]:
+                self.results["web"] = f"검색 완료: {result['search_count']}회, {result['docs_count']}개 문서"
+            else:
+                self.results["web"] = f"검색 실패: {result.get('error', 'Unknown')}"
+            
+            logging.info("[Web MCP Agent] 완료")
         except Exception as e:
-            logging.error(f"[Web Agent] 오류 발생: {e}")
+            logging.error(f"[Web MCP Agent] 오류 발생: {e}")
+            self.results["web"] = f"오류: {str(e)}"
 
     # ----------------------------------------------------------------
     # 전체 실행 관리
     # ----------------------------------------------------------------
-    def run_all(self, query: str):
+    def run_all(self):
+        """전체 파이프라인 실행 (query 파라미터 제거)"""
         logging.info("="*80)
         logging.info("데이터 파이프라인 Supervisor 시작")
         start_time = datetime.now()
 
+        self.run_web_agent()
         self.run_db_agent()
-        self.run_web_agent(query)
         self.run_pdf_agent()
 
         duration = datetime.now() - start_time
@@ -104,17 +112,18 @@ class DataPipelineSupervisor:
         return self.results
 
     # ----------------------------------------------------------------
-    # 단일 실행 모드 (API 호출 등에서 사용)
+    # 단일 실행 모드
     # ----------------------------------------------------------------
-    def run_mode(self, mode: Literal["db", "web", "pdf", "all"], query: str = ""):
+    def run_mode(self, mode: Literal["db", "web", "pdf", "all"]):
+        """단일 모드 실행 (query 파라미터 제거)"""
         if mode == "db":
             self.run_db_agent()
         elif mode == "web":
-            self.run_web_agent(query)
+            self.run_web_agent()  # query 파라미터 제거
         elif mode == "pdf":
             self.run_pdf_agent()
         elif mode == "all":
-            return self.run_all(query)
+            return self.run_all()
         else:
             logging.warning(f"알 수 없는 모드: {mode}")
 
@@ -122,10 +131,6 @@ class DataPipelineSupervisor:
 # 단독 실행 예시
 # ----------------------------
 if __name__ == "__main__":
-    import os
-    from dotenv import load_dotenv
-
-    load_dotenv()
 
     POSTGRES_URL = os.getenv("POSTGRES_URL")
     QDRANT_URL = os.getenv("QDRANT_URL")
@@ -137,8 +142,9 @@ if __name__ == "__main__":
         pdf_folder=PDF_FOLDER
     )
 
-    # 전체 파이프라인 실행
-    results = supervisor.run_all(query="삼성전자의 성장을 위한 AI 도입 방안")
+    # 전체 파이프라인 실행 (query 제거)
+    results = supervisor.run_all()
+    
     print("\n[최종 결과 요약]")
     for k, v in results.items():
         print(f"- {k}: {v}")

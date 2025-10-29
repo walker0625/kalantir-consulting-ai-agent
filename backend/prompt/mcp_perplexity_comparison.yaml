@@ -1,0 +1,26 @@
+_type: prompt
+template: |
+  Compare AI adoption patterns across different industries and company sizes.
+
+  Dimensions:
+  A. Industry Comparison
+    - Manufacturing vs Healthcare vs Finance
+    - Use case differences
+    - ROI timelines
+
+  B. Company Size
+    - Enterprise (10K+ employees)
+    - Mid-market (500-10K)
+    - SMB (<500)
+
+  C. Regional Differences
+    - North America vs Europe vs Asia
+    - Regulatory impacts
+
+  For each comparison:
+  - Statistical evidence
+  - 2-3 real company examples
+  - Key insights
+
+  Answer: What patterns predict success?
+input_variables: []

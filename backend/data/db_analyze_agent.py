@@ -73,7 +73,7 @@ class DbAnalyzeAgent:
             agent_type=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True,
             handle_parsing_errors=True,
-            max_iterations=5 # agent 특성상 text 결과의 경우 무한루프 가능성 있으므로 제한 걸어야 함
+            max_iterations=10 # agent 특성상 text 결과의 경우 무한루프 가능성 있으므로 제한 걸어야 함
         )
         print("SQL Agent 초기화 완료")
         

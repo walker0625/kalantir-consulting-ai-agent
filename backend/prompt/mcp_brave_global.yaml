@@ -1,0 +1,21 @@
+_type: prompt
+template: |
+  Search for global AI adoption news and announcements from major tech companies.
+
+  Target Companies:
+  - US: Microsoft, Google, Amazon, Apple, Meta, NVIDIA
+  - Europe: SAP, Siemens
+  - Asia: Samsung, TSMC, Sony, Alibaba
+
+  News Sources:
+  - Business: Wall Street Journal, Financial Times, Bloomberg
+  - Tech: TechCrunch, The Verge, VentureBeat
+
+  Information to Collect:
+  - Investment amounts (USD millions/billions)
+  - Partnership details
+  - Product launches
+  - Market impact
+
+  Timeframe: Last 6 months
+input_variables: []
