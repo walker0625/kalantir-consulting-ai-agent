@@ -64,16 +64,16 @@ class DbAnalyzeAgent:
         
     def setup_agent(self):
         """SQL Agent 초기화"""
-        llm = ChatOpenAI(model=self.llm_model, temperature=0.3)
+        llm = ChatOpenAI(model=self.llm_model, temperature=0.1)
         tools = SQLDatabaseToolkit(db=self.db, llm=llm).get_tools()
         
         self.agent = initialize_agent(
             llm=llm,
             tools=tools,
-            agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+            agent_type=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True,
             handle_parsing_errors=True,
-            max_iterations=3 # agent 특성상 text 결과의 경우 무한루프 가능성 있으므로 제한 걸어야 함
+            max_iterations=5 # agent 특성상 text 결과의 경우 무한루프 가능성 있으므로 제한 걸어야 함
         )
         print("SQL Agent 초기화 완료")
         
@@ -96,7 +96,7 @@ class DbAnalyzeAgent:
     def store_to_qdrant(
         self, 
         text: str, 
-        chunk_size: int = 300,
+        chunk_size: int = 500,
         chunk_overlap: int = 50
     ) -> Qdrant:
         """분석 결과를 Qdrant에 저장"""

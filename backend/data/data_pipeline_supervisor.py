@@ -2,9 +2,11 @@ import logging
 from datetime import datetime
 from typing import Literal
 
-from db_analyze_agent import DbAnalyzeAgent
-from pdf_vectorizer import PdfVectorizer
-from web_search_agent import WebSearchAgent
+from backend.data.db_analyze_agent import DbAnalyzeAgent
+from backend.data.pdf_vectorizer import PdfVectorizer
+from backend.data.web_search_agent import WebSearchAgent
+
+from util.path import PDF_DIR, LOG_DIR
 
 # ----------------------------
 # 기본 로깅 설정
@@ -13,7 +15,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("supervisor.log", encoding="utf-8"),
+        logging.FileHandler(LOG_DIR / "data_pipeline_supervisor.log", encoding="utf-8"),
         logging.StreamHandler()
     ]
 )
@@ -70,7 +72,7 @@ class DataPipelineSupervisor:
             logging.error(f"[PDF Agent] 오류 발생: {e}")
 
     def run_web_agent(self, query: str):
-        logging.info("🌐 [Web Agent] 웹 검색 및 임베딩 시작")
+        logging.info("[Web Agent] 웹 검색 및 임베딩 시작")
         try:
             web_agent = WebSearchAgent(
                 query=query,
@@ -79,7 +81,7 @@ class DataPipelineSupervisor:
             )
             web_agent.run()
             self.results["web"] = f"'{query}' 검색 완료"
-            logging.info("✅ [Web Agent] 완료")
+            logging.info("[Web Agent] 완료")
         except Exception as e:
             logging.error(f"[Web Agent] 오류 발생: {e}")
 
@@ -127,7 +129,7 @@ if __name__ == "__main__":
 
     POSTGRES_URL = os.getenv("POSTGRES_URL")
     QDRANT_URL = os.getenv("QDRANT_URL")
-    PDF_FOLDER = "../../raw_data/pdf"
+    PDF_FOLDER = PDF_DIR
 
     supervisor = DataPipelineSupervisor(
         db_uri=POSTGRES_URL,
@@ -136,7 +138,7 @@ if __name__ == "__main__":
     )
 
     # 전체 파이프라인 실행
-    results = supervisor.run_all(query="삼성전자의 AI 관련 최근 사업 전략")
+    results = supervisor.run_all(query="삼성전자의 성장을 위한 AI 도입 방안")
     print("\n[최종 결과 요약]")
     for k, v in results.items():
         print(f"- {k}: {v}")
