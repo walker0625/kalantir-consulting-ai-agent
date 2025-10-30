@@ -3,6 +3,7 @@ from datetime import datetime
 import math
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Qdrant
+from langchain_community.document_transformers import LongContextReorder
 from qdrant_client import QdrantClient
 from rank_bm25 import BM25Okapi
 
@@ -49,6 +50,7 @@ def bm25_search(query: str, docs: list) -> dict:
     scores = bm25.get_scores(tokenized_query)
     
     max_score = max(scores) if max(scores) > 0 else 1
+    
     return {id(doc): score / max_score for doc, score in zip(docs, scores)}
 
 def hybrid_rerank(query: str, vector_docs: list, top_k: int = 30) -> list:
@@ -77,6 +79,7 @@ def hybrid_rerank(query: str, vector_docs: list, top_k: int = 30) -> list:
         doc_scores.append((final_score, doc))
     
     doc_scores.sort(key=lambda x: x[0], reverse=True)
+    
     return [doc for _, doc in doc_scores[:top_k]]
 
 def remove_duplicates(docs: list) -> list:
@@ -96,23 +99,13 @@ def remove_duplicates(docs: list) -> list:
     
     return unique_docs
 
-def _litm_reordering(documents: list) -> list:
-    """Lost in the Middle Reordering"""
-    if len(documents) <= 1:
-        return documents
-    
-    documents_copy = documents.copy()
-    documents_copy.reverse()
-    reordered_result = []
-    
-    for i, value in enumerate(documents_copy):
-        if i % 2 == 1:
-            reordered_result.append(value)
-        else:
-            reordered_result.insert(0, value)
-    
-    return reordered_result
 
+# RAG 검색 파이프라인 (5단계)
+# 1. MMR Vector Search (다양성) + 중복 제거 로직(remove_duplicates())
+# 2. BM25 Keyword Search (정확도)
+# 3. Time Weighting (최신성)
+# 4. Hybrid Reranking (통합 점수)
+# 5. LITM Reordering (최종 재정렬)
 def search_rag(state: InterviewState):
     """일일보고서용 RAG 검색 파이프라인"""
     COLLECTIONS = ['industry_ai_cases', 'samsung_internal_db', 'samsung_external_pdf']
@@ -136,7 +129,7 @@ def search_rag(state: InterviewState):
     print(f"[Hybrid Rerank] {len(reranked_results)}개 문서 선택")
     
     final_results = reranked_results[:7]
-    final_results = _litm_reordering(final_results)
+    final_results = LongContextReorder().transform_documents(final_results)
     print(f"[LITM Reorder] {len(final_results)}개 최종 선택\n")
     
     print("[최종 선택 문서]")

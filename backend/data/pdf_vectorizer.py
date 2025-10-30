@@ -134,6 +134,7 @@ class PdfVectorizer:
                 print(f"{os.path.basename(path)} 로드 실패: {e}")
         
         print(f"총 {len(all_docs)} pages 로드 완료 (파일 {len(pdf_files_with_hash)}개).")
+        
         return all_docs
 
     def split_documents(self, docs):

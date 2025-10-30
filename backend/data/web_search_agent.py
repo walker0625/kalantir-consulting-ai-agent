@@ -18,7 +18,6 @@ from util.path import PROMPT_DIR
 
 load_dotenv()
 
-
 class WebSearchMCPAgent:
     """MCP 기반 웹 검색 Agent (Exa, Brave, Perplexity)"""
     
@@ -260,8 +259,8 @@ class WebSearchMCPAgent:
         final_report = response.content
         
         complete_content = collected_data + "\n\n" + "="*70 + "\n" + \
-                          "[📋 최종 종합 분석 리포트]" + "\n" + "="*70 + "\n\n" + \
-                          final_report
+                        "[📋 최종 종합 분석 리포트]" + "\n" + "="*70 + "\n\n" + \
+                        final_report
         
         print(f"✅ 종합 완료: {len(complete_content):,}자")
         
