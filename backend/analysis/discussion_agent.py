@@ -15,6 +15,8 @@ from backend.analysis.nodes.routing import initiate_all_interviews_node, route_t
 from backend.analysis.retrieval.rag import search_rag
 from backend.analysis.retrieval.web_search import search_web
 
+from util.pdf_maker import make_pdf_and_save
+
 def build_interview_graph():
     """인터뷰 그래프 구성"""
     interview_builder = StateGraph(InterviewState)
@@ -131,19 +133,21 @@ def save_report_to_db(report: str, report_type: str = "daily"):
         }
     )
     
+    file_path = make_pdf_and_save(report)
+    
     query = text("""
-    INSERT INTO reports (contents, report_type)
-    VALUES (:final_report, :report_type)
+    INSERT INTO reports (file_path, contents, report_type)
+    VALUES (:file_path, :final_report, :report_type)
     RETURNING id;
     """)
     
-    params = {"final_report": report, "report_type": report_type}
+    params = {"file_path": file_path, "final_report": report, "report_type": report_type}
     
     with db._engine.connect() as conn:
         result = conn.execute(query, params)
         new_id = result.scalar()
         conn.commit()
-        
+    
     return new_id
 
 def main():

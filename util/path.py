@@ -9,6 +9,7 @@ BACKEND_DIR = PROJECT_ROOT / "backend"
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 UTIL_DIR = PROJECT_ROOT / "util"
 RAW_DATA_DIR = PROJECT_ROOT / "raw_data"
+REPORT_DIR = PROJECT_ROOT / "report"
 LOG_DIR = PROJECT_ROOT / "log"
 
 # === Backend 하위 디렉토리 ===
