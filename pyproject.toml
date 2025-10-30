@@ -24,6 +24,7 @@ dependencies = [
     "qdrant-client>=1.15.1",
     "rank-bm25>=0.2.2",
     "reportlab>=4.4.4",
+    "schedule>=1.2.2",
     "sentence-transformers>=5.1.2",
     "typing-extensions>=4.15.0",
     "weasyprint>=66.0",
