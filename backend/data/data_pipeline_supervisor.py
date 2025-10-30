@@ -7,7 +7,7 @@ from typing import Literal
 
 from backend.data.db_analyze_agent import DbAnalyzeAgent
 from backend.data.pdf_vectorizer import PdfVectorizer
-from backend.data.web_search_agent import WebSearchMCPAgent  # 변경
+from backend.data.web_search_agent import WebSearchMCPAgent
 
 from util.path import PDF_DIR, LOG_DIR
 
