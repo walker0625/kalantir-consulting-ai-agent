@@ -42,3 +42,7 @@
 ### 3. Automation Layer
 - **APScheduler**: 매일 06:00 데이터 수집 → 리서치
 - **Email Agent**: 매일 09:00 보고서 자동 발송
+
+![alt text](image.png)
+
+#### 결과 report pdf 예시는 /report 폴더에서 확인 가능
