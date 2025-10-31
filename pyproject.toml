@@ -5,7 +5,9 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "apscheduler>=3.11.0",
     "arxiv>=2.2.0",
+    "fastapi>=0.120.3",
     "fitz>=0.0.1.dev2",
     "frontend>=0.0.3",
     "jupyter>=1.1.1",
@@ -25,6 +27,7 @@ dependencies = [
     "rank-bm25>=0.2.2",
     "reportlab>=4.4.4",
     "schedule>=1.2.2",
+    "scheduler>=0.8.8",
     "sentence-transformers>=5.1.2",
     "typing-extensions>=4.15.0",
     "weasyprint>=66.0",

@@ -1,7 +1,5 @@
 import os
-import time
 from dotenv import load_dotenv
-import schedule
 import smtplib
 
 from email.mime.multipart import MIMEMultipart
@@ -115,7 +113,7 @@ def send_email_with_pdf():
 칼란티어 AI 비즈니스 팀입니다.
 
 오늘의 삼성전자 AI 주요 뉴스와 
-AI 사업 도입을 위한 Daily Report(PDF) 첨부하여 보내드립니다.
+Daily Report(PDF) 첨부하여 보내드립니다.
 
 {search_results}
 
@@ -156,20 +154,5 @@ def job():
     print(f"메일 전송 작업 시작: {datetime.now()}")
     send_email_with_pdf()
 
-def main():
-    #"""메인 스케줄러 실행"""
-    # 매일 오전 9시에 실행
-    # schedule.every().day.at("09:00").do(job)
-    
-    # print("스케줄러 시작됨. 매일 오전 9시에 이메일 전송 예정...")
-    # print(f"다음 실행 시간: {schedule.next_run()}")
-    
-    # 테스트용: 즉시 실행하려면 아래 주석 해제
-    job()
-    
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(60)  # 1분마다 체크
-
 if __name__ == "__main__":
-    main()
+    job()
