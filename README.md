@@ -166,3 +166,5 @@ kalantir-consulting-ai-agent
 └── README.md
 
 ```
+
+*** Email로 자동 전송되는 pdf 예시 파일은 /report 폴더 안에 파일로 확인 가능합니다.
