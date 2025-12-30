@@ -18,6 +18,8 @@
 
 ---
 
+<img width="2752" height="1536" alt="system" src="https://github.com/user-attachments/assets/12da02c2-8c26-4929-a28f-55738a56b735" />
+
 ## 🏗️ System Architecture
 
 이 시스템은 크게 **Service Layer(FastAPI + Scheduler)**, **Data Pipeline Layer**, **Agentic Analysis Layer(LangGraph)**의 3계층으로 구성되어 있습니다.
