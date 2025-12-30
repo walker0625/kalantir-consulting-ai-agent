@@ -1,4 +1,4 @@
-# 🧠 Kalantir: 모닝 AI 전략 Auto Mailing 컨설팅
+# 🧠 Kalantir: AI 전략 Auto Mailing 컨설팅
 
 > **LangGraph 기반의 멀티 페르소나 인터뷰 및 데이터 파이프라인 자동화 솔루션**
 
